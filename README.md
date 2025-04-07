@@ -252,7 +252,7 @@ development environment.
   purposes only.
 
     ```bash
-    python3.9 wsgi.py
+    python3.9 asgi.py
     ```
 
 * The microservice will be accessible at `http://127.0.0.1:8000` (or the port
@@ -311,6 +311,89 @@ integration tests to ensure system-wide functionality.
     * Validation of system-level functionality and performance.
     * Increased confidence in the microservice's overall stability.
     * Verifying that all parts of the system work together.
+
+### Execution
+
+To execute the microservice's tests, follow these steps:
+
+1. **Start Infrastructure Services:**
+    * Ensure that the necessary infrastructure services (e.g., databases,
+      message queues) are running using Docker Compose. For more information,
+      see
+      the [Start Infrastructure Services](https://github.com/hokushin118/cba-devops?tab=readme-ov-file#local-development)
+      section of the README.
+
+2. **Run Unit Tests:**
+    * Execute the microservice's unit tests using `pytest`. You can run a basic
+      test execution or include coverage reporting.
+    * **Basic Test Execution:**
+      ```bash
+      pytest -v tests/unit
+      ```
+        * `pytest`: Executes the pytest test runner.
+        * `-v`: Enables verbose output.
+        * `tests/unit`: Specifies the directory where pytest should discover
+          and execute unit tests.
+    * **Test Execution with Coverage Reporting:**
+      ```bash
+      pytest -v --cov=service --cov-report=term-missing --cov-branch tests/unit
+      ```
+        * `pytest`: Executes the pytest test runner.
+        * `-v`: Enables verbose output.
+        * `--cov=service`: Enables test coverage measurement for the `service`
+          module.
+        * `--cov-report=term-missing`: Enables detailed terminal output,
+          showing lines not covered by tests.
+        * `--cov-branch`: Enables branch coverage measurement in addition to
+          line coverage.
+        * `tests/unit`: Specifies the directory where pytest should discover
+          and execute unit tests.
+
+    * **Test Execution with Coverage Reporting and Minimum Threshold:**
+      ```bash
+      pytest -v --cov=service --cov-report=term-missing --cov-branch --cov-fail-under=80 tests/unit
+      ```
+        * `pytest`: Executes the pytest test runner.
+        * `-v`: Enables verbose output.
+        * `--cov=service`: Enables test coverage measurement for the `service`
+          module.
+        * `--cov-report=term-missing`: Enables detailed terminal output,
+          showing lines not covered by tests.
+        * `--cov-branch`: Enables branch coverage measurement in addition to
+          line coverage.
+        * `--cov-fail-under=80`: Fails the test run if overall coverage is
+          below 80%.
+        * `tests/unit`: Specifies the directory where pytest should discover
+          and execute unit tests.
+
+    * **Explanation of Coverage Options:**
+
+        * `--cov=service`: Specifies the module to measure coverage for.
+        * `--cov-report=term-missing`: Displays missing lines in the terminal
+          report.
+        * `--cov-branch`: Enables branch coverage measurement.
+        * `--cov-fail-under=80`: Enforces a minimum coverage threshold of 80%.
+        * `--cov-report=html`: Generates an HTML coverage report.
+        * `--cov-report=xml`: Generates an XML coverage report.
+
+3. **Run Integration Tests:**
+    * Execute the microservice's integration tests using `pytest`.
+   ```bash
+   pytest -v --with-integration tests/integration
+   ```
+    * `pytest`: Executes the pytest test runner.
+    * `-v`: Enables verbose output.
+    * `--with-integration`: Enables the execution of integration tests.
+    * `tests/integration`: Specifies the directory where pytest should
+      discover and execute integration tests.
+
+**Important Notes:**
+
+* Verify that your application's configuration is set up correctly for the
+  testing environment.
+* Review the test output for any failures or errors.
+* If you are using a different testing framework than pytest, update the
+  testing command accordingly.
 
 ## Lint
 

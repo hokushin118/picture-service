@@ -6,14 +6,11 @@ It also handles application-level logging.
 """
 from __future__ import annotations
 
-import os
-
 from fastapi import FastAPI
 
-# Retrieving Information (Environment Variables Example):
-# This is a common way to manage configuration, especially in containerized environments.
-VERSION = os.environ.get('VERSION', '0.0.1')  # Default if not set
-NAME = os.environ.get('NAME', 'REST API Service for Pictures')
+from service.configs import AppConfig
+
+app_config = AppConfig()
 
 
 # --- FastAPI Application Setup ---
@@ -29,8 +26,8 @@ def create_app() -> FastAPI:
     """
 
     current_app = FastAPI(
-        title=NAME,
-        version=VERSION
+        title=app_config.description,
+        version=app_config.version
     )
     return current_app
 

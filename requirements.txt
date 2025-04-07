@@ -34,7 +34,7 @@ pytest-integration-mark==0.2.0
 pytest-sugar==0.9.7
 
 # Code Coverage
-coverage==6.3.2
+pytest-cov==6.1.1
 
 # Utilities
 httpie==3.2.1
