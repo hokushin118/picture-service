@@ -6,7 +6,7 @@ starlette>=0.27.0,<0.28.0
 python-multipart==0.0.6
 
 # Templates
-jinja2==3.1.2
+jinja2==3.1.6
 
 # For the handling of static files in asyncio apps
 aiofiles==23.2.1
