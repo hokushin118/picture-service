@@ -15,7 +15,7 @@ aiofiles==23.2.1
 python-jose[cryptography]==3.3.0
 
 # Runtime dependencies
-gunicorn==20.1.0
+gunicorn==23.0.0
 honcho==1.1.0
 uvicorn>=0.23.0,<0.23.2
 
