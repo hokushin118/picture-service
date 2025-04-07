@@ -1,0 +1,40 @@
+# Build dependencies
+fastapi>=0.103.0,<0.103.2
+pydantic[email]==2.4.2
+pydantic-settings==2.0.3
+starlette>=0.27.0,<0.28.0
+python-multipart==0.0.6
+
+# Templates
+jinja2==3.1.2
+
+# For the handling of static files in asyncio apps
+aiofiles==23.2.1
+
+# Jwt tokens
+python-jose[cryptography]==3.3.0
+
+# Runtime dependencies
+gunicorn==20.1.0
+honcho==1.1.0
+uvicorn>=0.23.0,<0.23.2
+
+# Code quality
+pylint==2.14.0
+flake8==4.0.1
+black==22.3.0
+
+# Testing dependencies
+testcontainers==4.9.2
+pytest==7.4.2
+pytest-asyncio==0.21.1
+httpx==0.25.0
+asgi-lifespan==2.1.0
+pytest-integration-mark==0.2.0
+pytest-sugar==0.9.7
+
+# Code Coverage
+coverage==6.3.2
+
+# Utilities
+httpie==3.2.1
