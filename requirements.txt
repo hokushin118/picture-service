@@ -3,7 +3,7 @@ fastapi>=0.103.0,<0.103.2
 pydantic[email]==2.4.2
 pydantic-settings==2.0.3
 starlette>=0.27.0,<0.28.0
-python-multipart==0.0.6
+python-multipart==0.0.18
 
 # Templates
 jinja2==3.1.2
