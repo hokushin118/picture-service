@@ -6,9 +6,12 @@ It also handles application-level logging.
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
+import logging
 
+from fastapi import FastAPI
 from service.configs import AppConfig
+
+logger = logging.getLogger(__name__)
 
 app_config = AppConfig()
 
