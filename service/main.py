@@ -9,11 +9,9 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI
-from service.configs import AppConfig
+from service import app_config
 
 logger = logging.getLogger(__name__)
-
-app_config = AppConfig()
 
 
 # --- FastAPI Application Setup ---

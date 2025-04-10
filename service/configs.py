@@ -34,6 +34,10 @@ class AppConfig:
     """The version of the application, retrieved from the VERSION
     environment variable."""
 
+    log_level: str = field(init=False)
+    """Log level of the application, retrieved from the LOG_LEVEL
+    environment variable."""
+
     def __post_init__(self) -> None:
         """Post-initialization to set derived attributes and validate configuration.
 
@@ -43,8 +47,10 @@ class AppConfig:
         name = os.getenv('NAME', 'picture-service')
         description = os.getenv('DESCRIPTION', 'REST API Service for Pictures')
         version = os.getenv('VERSION', '1.0.0')
+        log_level = os.getenv('LOG_LEVEL', 'INFO')
 
         object.__setattr__(self, 'api_version', api_version)
         object.__setattr__(self, 'name', name)
         object.__setattr__(self, 'description', description)
         object.__setattr__(self, 'version', version)
+        object.__setattr__(self, 'log_level', log_level)

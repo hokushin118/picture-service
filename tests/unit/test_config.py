@@ -7,7 +7,6 @@ Test cases can be run with the following:
 import os
 
 import pytest
-
 from service.configs import AppConfig
 
 
@@ -25,6 +24,7 @@ class TestAppConfig:
         assert app_config.name == 'picture-service'
         assert app_config.description == 'REST API Service for Pictures'
         assert app_config.version == '1.0.0'
+        assert app_config.log_level == 'INFO'
 
     def test_app_config_custom_values(self, monkeypatch):
         """It should verify AppConfig attributes with custom environment
@@ -33,12 +33,14 @@ class TestAppConfig:
         monkeypatch.setenv('NAME', 'image-processor')
         monkeypatch.setenv('DESCRIPTION', 'Image processing service')
         monkeypatch.setenv('VERSION', '2.5.0')
+        monkeypatch.setenv('LOG_LEVEL', 'INFO')
 
         app_config = AppConfig()
         assert app_config.api_version == 'v2'
         assert app_config.name == 'image-processor'
         assert app_config.description == 'Image processing service'
         assert app_config.version == '2.5.0'
+        assert app_config.log_level == 'INFO'
 
     def test_app_config_immutability(self, app_config):
         """It should ensure AppConfig instance is immutable."""
@@ -56,11 +58,13 @@ class TestAppConfig:
         monkeypatch.setenv('NAME', 'image-processor')
         monkeypatch.setenv('DESCRIPTION', 'Image processing service')
         monkeypatch.setenv('VERSION', '2.5.0')
+        monkeypatch.setenv('LOG_LEVEL', 'INFO')
 
         assert hasattr(app_config, 'api_version')
         assert hasattr(app_config, 'name')
         assert hasattr(app_config, 'description')
         assert hasattr(app_config, 'version')
+        assert hasattr(app_config, 'log_level')
 
     def test_app_config_post_init_correct_values(self, app_config):
         """It should verify post_init sets attributes to correct env var
@@ -72,3 +76,4 @@ class TestAppConfig:
             'REST API Service for Pictures'
         )
         assert app_config.version == os.getenv('VERSION', '1.0.0')
+        assert app_config.log_level == os.getenv('LOG_LEVEL', 'INFO')
