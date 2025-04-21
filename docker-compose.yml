@@ -1,0 +1,47 @@
+# This is the base Docker Compose file for the Picture microservice.
+# Project name
+name: cba
+
+services:
+  # The Picture microservice provides REST API for the CBA app.
+  picture-service:
+    image: ${PICTURE_SRV_IMAGE}:${PICTURE_SRV_VERSION}
+    hostname: ${PICTURE_SRV_HOSTNAME}
+    restart: on-failure
+    environment:
+      - JVM_OPTS=-Xmx8g -Xms8g -XX:MaxPermSize=1024m
+    labels:
+      collect_logs_with_filebeat: true
+      decode_log_event_to_json: true
+    networks:
+      - ${BACKEND_NETWORK}
+#    healthcheck: # Healthcheck for better container management
+#      test: [ 'CMD-SHELL', 'curl -f http://${PICTURE_SRV_HOSTNAME}:${PICTURE_SRV_PORT}/api/health || exit 1' ]
+#      interval: 15s
+#      timeout: 10s
+#      retries: 5
+#      start_period: 15s
+    deploy:
+      replicas: 0
+      update_config:
+        parallelism: 1 # Update one replica at a time
+        delay: 10s      # Wait between updates
+        order: stop-first  # Stop old containers before starting new ones
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+      restart_policy:
+        condition: on-failure # Only restart on failure
+        delay: 5s # Wait 5 seconds before restarting
+        max_attempts: 3 # Retry up to 3 times
+    logging: # Common logging config
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 5
+
+# networks
+networks:
+  cba_net:
+    name: ${BACKEND_NETWORK}
