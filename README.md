@@ -290,6 +290,61 @@ that the package was installed correctly.
     deactivate
     ```
 
+## Running the Microservice with Docker
+
+This section describes how to build and run the microservice using Docker.
+
+**1. Build the Docker Image:**
+
+* Navigate to the directory containing microservice `Dockerfile` (root
+  directory of microservice).
+* Use the following command to build the Docker image:
+
+    ```bash
+    docker build -t picture-service .
+    ```
+
+    * `docker build`: Builds a Docker image.
+    * `-t picture-service`: Tags the image with the name `picture-service`.
+    * `.`: Specifies the build context (current directory).
+
+**2. Run the Docker Container:**
+
+* Use the following command to run the Docker container:
+
+    ```bash
+    docker run -p 5000:5000 picture-service
+    ```
+
+    * `docker run`: Runs a Docker container.
+    * `-p 5000:5000`: Maps port 5000 on the host to port 5000 in the container.
+    * `picture-service`: Specifies the image to run.
+
+**Important Notes:**
+
+* Ensure that Docker is installed and running on your system.
+* Verify that your `Dockerfile` is correctly configured.
+* The `-p 5000:5000` option maps the container's port to the host. If your
+  application uses a different port, adjust the mapping accordingly.
+* If you are running a database or other dependencies, you will need to run
+  them as separate containers or use Docker Compose.
+* To run the container in detached mode (background), add the `-d` flag:
+
+    ```bash
+    docker run -d -p 5000:5000 picture-service
+    ```
+* To remove the container after stopping it, add the `--rm` flag:
+
+    ```bash
+    docker run --rm -p 5000:5000 picture-service
+    ```
+
+* To run a specific version of the image, use the tag. For example:
+
+    ```bash
+    docker run -p 5000:5000 picture-service:v1
+    ```
+
 ## Running Tests
 
 ### Introduction
