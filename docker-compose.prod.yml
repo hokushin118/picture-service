@@ -1,0 +1,18 @@
+# Production profile
+# docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+# You only need to include the services you are changing in the override file.
+# All other settings will be inherited from the original docker-compose.yml file.
+# Project name
+name: cba
+
+services:
+  picture-service:
+    extends:
+      file: docker-compose.yml
+      service: picture-service
+    pull_policy: always
+    restart: always
+    env_file:
+      - .env.production
+    deploy:
+      replicas: 3

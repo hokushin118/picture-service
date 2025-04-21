@@ -345,6 +345,82 @@ This section describes how to build and run the microservice using Docker.
     docker run -p 5000:5000 picture-service:v1
     ```
 
+## Running the Microservice with Docker Compose
+
+This section outlines how to run the microservice using Docker Compose,
+including infrastructure setup, and service access.
+
+**1. Start Infrastructure Services:**
+
+* Before running the microservice, ensure that the necessary infrastructure
+  services (e.g., databases, message queues) are running.
+* Refer to
+  the [Local Development](https://github.com/hokushin118/cba-devops/blob/main/README.md#local-development)
+  section of the README for detailed instructions.
+
+**2. Build and Run the Microservice:**
+
+* Before executing any Docker Compose commands, ensure you are in the root
+  directory of the microservice repository.
+* Use the following command to navigate to the root directory, if needed:
+
+    ```bash
+    cd /path/to/picture-service
+    ```
+
+* Use Docker Compose to build and run the microservice, along with any
+  profile-specific configurations.
+* Replace `<profile>` with the desired profile (e.g., `dev`, `test`, `prod`).
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.<profile>.yml up --build
+    ```
+
+* Example (dev profile):
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+    ```
+
+* To run the services in detached mode (background), add the `-d` flag:
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+    ```
+
+**3. Access the Microservice:**
+
+* Once the microservice is running, you can access it
+  at `http://127.0.0.1:5000`.
+* Replace `5000` with the port defined in your `docker-compose.<profile>.yml`
+  file if necessary.
+
+**5. Stop the Services:**
+
+* To stop the services, press **Ctrl+C** in the terminal where they are
+  running (if not detached), or use the following command:
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.<profile>.yml down
+    ```
+
+* Example (dev profile):
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+    ```
+
+* To remove volumes as well, add the `-v` flag:
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+    ```
+
+**6. Extending Docker Compose Configuration:**
+
+* For more details on extending Docker Compose configurations,
+  see: [Extend your Compose files](https://docs.docker.com/compose/how-tos/multiple-compose-files/extends)
+
 ## Running Tests
 
 ### Introduction

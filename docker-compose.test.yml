@@ -1,0 +1,21 @@
+# Testing profile
+# docker compose -f docker-compose.yml -f docker-compose.test.yml up --build
+# You only need to include the services you are changing in the override file.
+# All other settings will be inherited from the original docker-compose.yml file.
+# Project name
+name: cba
+
+services:
+  picture-service:
+    extends:
+      file: docker-compose.yml
+      service: picture-service
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports: # Important: In a production environment you should remove the external port that kept here for debugging purposes.
+      - ${PICTURE_SRV_PORT}:5000 # external port / container port
+    env_file:
+      - .env.testing
+    deploy:
+      replicas: 1
