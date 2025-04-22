@@ -41,6 +41,50 @@ def check_not_whitespace_only(
 ######################################################################
 # SCHEMAS
 ######################################################################
+class IndexDTO(BaseModel):
+    """Represents the response body for a root endpoint.
+
+    Indicates the welcome message of the service.
+
+    Attributes:
+        message (str): The welcome message for the API.
+    """
+    message: str = Field(
+        ...,
+        min_length=MIN_LENGTH,
+        description="The welcome message of the service (e.g., 'Welcome').",
+        examples=['Welcome to the Picture API!']
+    )
+
+    @field_validator('message')
+    # pylint: disable=no-self-argument
+    def check_message_not_whitespace_only(
+            cls,
+            value: str
+    ) -> str:
+        """Validates that the message string is not composed solely
+        of whitespace.
+
+        This validator is applied to the 'message' field of the
+        IndexDTO model. It uses the `check_not_whitespace_only`
+        function to perform the validation.
+
+        Args:
+            cls: The class of the model (IndexDTO).
+            This is automatically passed by Pydantic and is conventionally
+            named `cls`.
+            value (str): The value of the 'message' field to be validated.
+
+        Returns:
+            str: The validated message string.
+
+        Raises:
+            ValueError: If the message string contains only whitespace
+            characters.
+        """
+        return check_not_whitespace_only(value)
+
+
 class HealthCheckDTO(BaseModel):
     """Represents the response body for a health check endpoint.
 

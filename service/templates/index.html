@@ -1,0 +1,26 @@
+{% extends "shared/base.html" %}
+
+
+{% block title %}
+<title>REST API for managing picture files and associated metadata</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-4">
+                <p class="lead font-weight-normal">REST API for managing picture files and associated metadata</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-4">
+                <a class="nav-link px-2" href="/docs" title="A link to the Swagger documentation (Open API 3.1 format)">Swagger - OpenAPI 3.1</a>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-4">
+                <a class="nav-link px-2" href="/redoc" title="A link to the Redoc documentation">Redoc</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

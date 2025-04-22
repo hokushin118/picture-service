@@ -1,0 +1,36 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', path='images/logo.png') }}"
+                 alt="REST API for managing picture files and associated metadata"
+                 height="24">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#"
+                       title="REST API for managing picture files and associated metadata"
+                       id="navbarDropdown"
+                       role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        Picture REST API Documentation
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/docs"
+                               title="A link to the Swagger documentation (Open API 3.1 format)">Swagger
+                            - Open API 3.1</a></li>
+                        <li><a class="dropdown-item" href="/redoc"
+                               title="A link to the Redoc documentation">Redoc</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

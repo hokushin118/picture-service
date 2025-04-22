@@ -564,3 +564,112 @@ pylint service/
 ## Environment Variables
 
 Environment variables for each profile are configured in the `.env` files.
+
+## Endpoints
+
+This section describes the available API endpoints.
+
+**General Endpoints:**
+
+* `/` (GET):
+    * Renders an HTML welcome page (index.html) containing links to the
+      OpenAPI (Swagger) and ReDoc API documentation.
+* `/api` (GET):
+    * Returns a welcome message indicating the API is running.
+    * Example Response: `{"message": "Welcome to the API!"}`
+* `/api/health` (GET):
+    * Provides the health status of the service.
+    * Response: `{"status": "UP"}` (Note: Currently always "UP").
+* `/api/info` (GET):
+    * Returns service information, including name, version, and uptime.
+    * Example
+      Response: `{"name": "Account Service", "version": "1.0.0", "uptime": "1d 2h 3m"}`
+
+**Picture Management (v1):**
+
+**Notes:**
+
+* `{picture_id}` refers to a version
+  4 [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) (
+  Universally Unique Identifier).
+* Request and response formats are in JSON.
+* Error handling and response codes are omitted for brevity. Refer to the API
+  documentation ([Swagger](https://swagger.io)) for detailed error information.
+
+## API Versioning
+
+This API employs path-based versioning to manage changes and ensure backward
+compatibility.
+
+**Current Version:**
+
+* The current API version is **v1**.
+* All API endpoints are prefixed with `/api/v1/`.
+* Example: `/api/v1/pictures`
+
+**Future Versions:**
+
+* When significant changes are introduced to the API, a new version will be
+  released (e.g., **v2**).
+* New versions will be accessible through their respective path prefixes (
+  e.g., `/api/v2/`).
+* Previous versions will be deprecated, and a migration period will be provided
+  before they are removed.
+
+**Deprecation Policy:**
+
+* A clear deprecation notice will be provided when a new API version is
+  released.
+* The deprecation period will allow developers sufficient time to migrate to
+  the latest version.
+* The exact deprecation period will be announced in the release notes and
+  documentation.
+
+**Benefits of Versioning:**
+
+* **Backward Compatibility:** Allows existing applications to continue
+  functioning without immediate changes.
+* **Controlled Updates:** Provides a structured way to introduce breaking
+  changes.
+* **Improved Communication:** Clearly indicates which version is being used.
+
+## API Documentation
+
+This API utilizes [Swagger](https://swagger.io)
+and [ReDoc](https://github.com/Redocly/redoc) for interactive
+documentation.
+
+**Accessing OpenAPI (Swagger):**
+
+* You can access the [Swagger](https://swagger.io) UI
+  at [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs).
+* This interface allows you to explore the available API endpoints, understand
+  their parameters, and even make test requests directly from your browser.
+
+**Accessing ReDoc:**
+
+* You can access the [ReDoc](https://github.com/Redocly/redoc) UI
+  at [http://127.0.0.1:5000/redoc](http://127.0.0.1:5000/redoc).
+* This interface allows you to explore the available API endpoints, understand
+  their parameters, and make test requests directly from your browser.
+
+**Enabling/Disabling OpenAPI (Swagger) / ReDoc:**
+
+* [Swagger](https://swagger.io) can be conditionally enabled or disabled using
+  the `SWAGGER_ENABLED` environment variable.
+* To enable Swagger, set `SWAGGER_ENABLED` to `true` (or any value that your
+  application interprets as true).
+* To disable Swagger, set `SWAGGER_ENABLED` to `false` (or omit the variable
+  entirely).
+* Example (using bash):
+    ```bash
+    export SWAGGER_ENABLED=true
+    ```
+
+**Important Notes:**
+
+* Ensure that your application is running on port 5000 (or the port specified
+  in your application's configuration) for the [Swagger](https://swagger.io) UI
+  to be accessible.
+* In production environments, it's generally recommended to disable Swagger for
+  security reasons, unless access is carefully controlled.
