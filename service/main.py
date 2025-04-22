@@ -11,8 +11,15 @@ from datetime import datetime, timezone
 
 from cba_core_lib.utils.enums import UserRole
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from service import app_config, NAME, VERSION, SWAGGER_ENABLED
+from service import (
+    app_config,
+    NAME,
+    VERSION,
+    SWAGGER_ENABLED,
+    BASE_DIR
+)
 from service.routes import router
 
 logger = logging.getLogger(__name__)
@@ -78,6 +85,18 @@ def create_app() -> FastAPI:
             # by HTTP method (GET, POST, PUT ...)
             'operationsSorter': 'method'
         }
+    )
+
+    # Mount the static files directory
+    # The static files directory contains the microservice's static files
+    # (CSS files, JavaScript files, images, etc.)
+    # https://fastapi.tiangolo.com/en/tutorial/static-files/
+    current_app.mount(
+        '/static',
+        StaticFiles(
+            directory=BASE_DIR / 'static'
+        ),
+        name='static'
     )
 
     # Include the main application router

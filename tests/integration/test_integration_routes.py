@@ -17,7 +17,7 @@ from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
 from service import NAME, VERSION
-from service.routes import HEALTH_PATH, INFO_PATH
+from service.routes import HEALTH_PATH, INFO_PATH, ROOT_PATH
 from tests.integration import ensure_url, join_urls
 
 # Find the project root directory (where Dockerfile is located)
@@ -165,6 +165,55 @@ async def service_container() -> AsyncGenerator[str, None]:
 @pytest.mark.integration
 class TestGeneralEndpointIntegration:
     """The General Endpoints Integration Tests."""
+
+    @pytest.mark.asyncio
+    async def test_home_endpoint(
+            self,
+            service_container: AsyncGenerator[str, None]
+    ):
+        """It should test the microservice home page for a
+        successful response."""
+        async for base_url in service_container:
+            # Ensure the home URL includes the protocol
+            health_url = join_urls(base_url, '/')
+            logger.info(
+                "Testing home page: %s",
+                health_url
+            )
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(health_url)
+
+                assert response.status_code == HTTP_200_OK
+                assert response.headers[
+                           'Content-Type'
+                       ] == 'text/html; charset=utf-8'
+            break
+
+    @pytest.mark.asyncio
+    async def test_root_endpoint(
+            self,
+            service_container: AsyncGenerator[str, None]
+    ):
+        """It should test the /api endpoint for a
+        successful response."""
+        async for base_url in service_container:
+            # Ensure the root URL includes the protocol
+            health_url = join_urls(base_url, ROOT_PATH)
+            logger.info(
+                "Testing root endpoint: %s",
+                health_url
+            )
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(health_url)
+
+                assert response.status_code == HTTP_200_OK
+                assert response.headers['Content-Type'] == 'application/json'
+                assert response.json() == {
+                    'message': 'Welcome to the Picture API!'
+                }
+            break
 
     @pytest.mark.asyncio
     async def test_health_endpoint(

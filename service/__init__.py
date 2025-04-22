@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import logging
 import os
+import pathlib
 
-from cba_core_lib.utils.env_utils import get_bool_from_env
 from cba_core_lib.logging import init_logging
+from cba_core_lib.utils.env_utils import get_bool_from_env
 from dotenv import load_dotenv
 
 from service.configs import AppConfig
@@ -24,6 +25,9 @@ logger = logging.getLogger()
 # The logging configuration sets the application's logger to DEBUG level.
 # This will affect all loggers in the application.
 init_logging(logger, log_level=app_config.log_level)
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+"""Path to the base directory of the microservice."""
 
 
 # --- Configuration and Environment Setup ---
