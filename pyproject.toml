@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0.0,<62.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# --- Project Metadata ---
+[project]
+name = "picture-service"
+version = "1.0.0"
+description = "Picture microservice"
+readme = "README.md"
+requires-python = ">=3.9"
+
+# --- Pytest Configuration ---
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+pythonpath = ["."]
+addopts = "-v --cov=service --cov-report=term-missing --cov-branch"
+# addopts = "-v --cov=service --cov-report=term-missing --cov-fail-under=80"
+# addopts = "-v --cov=service --cov-report=term-missing --cov-report=html"
+
+
+# --- Coverage.py Configuration ---
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    "*/__init__.py",
+]
+show_missing = true
+
+
+# --- Flake8 Configuration ---
+[tool.flake8]
+per-file-ignores = [
+    "*/__init__.py: F401, E402, C901",
+]
+
+# --- Pylint Configuration ---
+[tool.pylint]
+disable = [
+    "E1101", # no-member
+    "R0401", # cyclic-import
+    "R0913", # too-many-arguments
+    "R0903", # too-few-public-methods
+    "R0902", # too-many-instance-attributes
+    "W0621", # redefined-outer-name
+]

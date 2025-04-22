@@ -11,6 +11,9 @@ from service.configs import AppConfig
 from service.main import app
 
 
+############################################################
+# INTEGRATION TESTS SCENARIOS
+############################################################
 @pytest.mark.integration
 class TestFastAPIIntegration:
     """Integration tests for the FastAPI application."""

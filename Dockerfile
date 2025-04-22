@@ -81,5 +81,5 @@ CMD ["gunicorn", \
      "--bind", "0.0.0.0:5000", \
      "--log-level", "info", \
      "--access-logfile", "-", \
-     "--workers", "2", \
+     "--workers", "1", \
      "service.main:app"]

@@ -15,12 +15,12 @@ services:
       decode_log_event_to_json: true
     networks:
       - ${BACKEND_NETWORK}
-#    healthcheck: # Healthcheck for better container management
-#      test: [ 'CMD-SHELL', 'curl -f http://${PICTURE_SRV_HOSTNAME}:${PICTURE_SRV_PORT}/api/health || exit 1' ]
-#      interval: 15s
-#      timeout: 10s
-#      retries: 5
-#      start_period: 15s
+    healthcheck: # Healthcheck for better container management
+      test: [ 'CMD-SHELL', 'curl -f http://${PICTURE_SRV_HOSTNAME}:${PICTURE_SRV_PORT}/api/health || exit 1' ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     deploy:
       replicas: 0
       update_config:
