@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import os
 
+from cba_core_lib.utils.env_utils import get_bool_from_env
 from cba_core_lib.logging import init_logging
 from dotenv import load_dotenv
 
@@ -94,3 +95,4 @@ load_environment_variables()
 # containerized environments.
 VERSION = os.environ.get('VERSION', '0.0.1')  # Default if not set
 NAME = os.environ.get('NAME', 'picture-service')
+SWAGGER_ENABLED = get_bool_from_env('SWAGGER_ENABLED', False)

@@ -9,12 +9,30 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
+from cba_core_lib.utils.enums import UserRole
 from fastapi import FastAPI
 
-from service import app_config, NAME, VERSION
+from service import app_config, NAME, VERSION, SWAGGER_ENABLED
 from service.routes import router
 
 logger = logging.getLogger(__name__)
+
+OPENAPI_URL = '/openapi.json'
+"""Path to the microservice description."""
+
+# Metadata for organizing endpoints in the OpenAPI documentation UI
+tags_metadata = [
+    {
+        'name': 'General',
+        'description': 'General service information and '
+                       'health check endpoints.'
+    },
+    {
+        'name': 'Picture',
+        'description': 'Endpoints related to picture management '
+                       'and operations.'
+    },
+]
 
 
 # --- FastAPI Application Setup ---
@@ -28,13 +46,44 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: A configured FastAPI application instance.
     """
+    # Initialize the FastAPI application
     current_app = FastAPI(
         title=app_config.description,
-        version=app_config.version
+        version=app_config.version,
+        description=f'REST API for managing picture files and associated metadata.'
+                    f'<br/><br/>_Python 3.9_, _MongoDB_<br/><br/>'
+                    f'Test accounts data:<br/><br/>'
+                    f'Login: **admin**<br/>'
+                    f'Password: **test**<br/>'
+                    f'Role: **{UserRole.ADMIN}**<br/><br/>'
+                    f'Login: **test**<br/>'
+                    f'Password: **test**<br/>'
+                    f'Role: **{UserRole.USER}**',
+
+        # OpenAPI tag metadata for grouping endpoints in docs
+        openapi_tags=tags_metadata,
+
+        # https://fastapi.tiangolo.com/how-to/conditional-openapi/#conditional-openapi-from-settings-and-env-vars
+        # Conditionally enable/disable the OpenAPI schema endpoint
+        # Useful for production environments if docs shouldn't be exposed.
+        openapi_url=OPENAPI_URL if SWAGGER_ENABLED else None,
+
+        # Standard paths for interactive API documentation UIs
+        docs_url='/docs',  # Swagger UI path
+        redoc_url='/redoc',  # ReDoc path
+
+        # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+        swagger_ui_parameters={
+            # Sort operations within tags alphabetically
+            # by HTTP method (GET, POST, PUT ...)
+            'operationsSorter': 'method'
+        }
     )
 
-    # Adding routes
+    # Include the main application router
+    # This registers all the paths defined in the 'router' object
     current_app.include_router(router)
+    logger.info('Application router included successfully.')
 
     return current_app
 
