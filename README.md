@@ -532,9 +532,15 @@ To execute the microservice's tests, follow these steps:
    ```bash
    pytest -v --with-integration tests/integration
    ```
+   or in debug mode:
+   ```bash
+   pytest -v --with-integration --log-cli-level=DEBUG tests/integration
+    ```
     * `pytest`: Executes the pytest test runner.
     * `-v`: Enables verbose output.
     * `--with-integration`: Enables the execution of integration tests.
+    * `-log-cli-level=DEBUG`: Sets the logging level to DEBUG, providing more
+      detailed log output.
     * `tests/integration`: Specifies the directory where pytest should
       discover and execute integration tests.
 
