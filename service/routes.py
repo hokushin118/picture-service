@@ -52,7 +52,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / 'templates'))
                 'Requires Jinja2 templates to be configured and an '
                 '`index.html` file in the templates directory.',
     response_description='The HTML content of the microservice home page.',
-    tags=['General']
+    tags=['General'],
 )
 async def home(
         request: Request
@@ -157,7 +157,7 @@ async def health() -> HealthCheckDTO:
     response_description='Information about the service',
     tags=['General']
 )
-async def version(request: Request) -> InfoDTO:
+async def info(request: Request) -> InfoDTO:
     """Retrieves the current version of the application.
 
     This operation can be performed by an unauthenticated user. It is an

@@ -76,8 +76,8 @@ def create_app() -> FastAPI:
         openapi_url=OPENAPI_URL if SWAGGER_ENABLED else None,
 
         # Standard paths for interactive API documentation UIs
-        docs_url='/docs',  # Swagger UI path
-        redoc_url='/redoc',  # ReDoc path
+        docs_url='/docs' if SWAGGER_ENABLED else None,  # Swagger UI path
+        redoc_url='/redoc' if SWAGGER_ENABLED else None,  # ReDoc path
 
         # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
         swagger_ui_parameters={
