@@ -6,6 +6,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+from cba_core_lib.utils.env_utils import get_bool_from_env
+
 
 ######################################################################
 # APPLICATION CONFIGURATION
@@ -19,6 +21,7 @@ class AppConfig:
 
     This class is immutable.
     """
+    # General Settings
     api_version: str = field(init=False)
     """The version of the API, retrieved from the API_VERSION environment variable."""
 
@@ -38,6 +41,22 @@ class AppConfig:
     """Log level of the application, retrieved from the LOG_LEVEL
     environment variable."""
 
+    # MinIO Settings
+    minio_endpoint: str = field(init=False)
+    """MinIO server endpoint (e.g., localhost:9000)."""
+
+    minio_access_key: str = field(init=False)
+    """MinIO access key."""
+
+    minio_secret_key: str = field(init=False)
+    """MinIO secret key."""
+
+    minio_bucket: str = field(init=False)
+    """MinIO bucket name for microservice data."""
+
+    minio_use_ssl: bool = field(init=False)
+    """Use SSL/TLS for MinIO connection."""
+
     def __post_init__(self) -> None:
         """Post-initialization to set derived attributes and validate configuration.
 
@@ -49,8 +68,20 @@ class AppConfig:
         version = os.getenv('VERSION', '1.0.0')
         log_level = os.getenv('LOG_LEVEL', 'INFO')
 
+        minio_endpoint = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
+        minio_access_key = os.getenv('MINIO_ACCESS_KEY', 'admin')
+        minio_secret_key = os.getenv('MINIO_SECRET_KEY', 'minio12345')
+        minio_bucket = os.getenv('MINIO_BUCKET', 'picture-service-data')
+        minio_use_ssl = get_bool_from_env('MINIO_USE_SSL', False)
+
         object.__setattr__(self, 'api_version', api_version)
         object.__setattr__(self, 'name', name)
         object.__setattr__(self, 'description', description)
         object.__setattr__(self, 'version', version)
         object.__setattr__(self, 'log_level', log_level)
+
+        object.__setattr__(self, 'minio_endpoint', minio_endpoint)
+        object.__setattr__(self, 'minio_access_key', minio_access_key)
+        object.__setattr__(self, 'minio_secret_key', minio_secret_key)
+        object.__setattr__(self, 'minio_bucket', minio_bucket)
+        object.__setattr__(self, 'minio_use_ssl', minio_use_ssl)
