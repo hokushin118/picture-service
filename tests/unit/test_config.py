@@ -10,7 +10,7 @@ import pytest
 from cba_core_lib.utils.env_utils import get_bool_from_env
 from pydantic import ValidationError
 
-from service.configs import AppConfig, MinioConfig
+from service.configs import AppConfig, MinioConfig, MongoConfig
 
 
 class TestAppConfig:
@@ -31,10 +31,6 @@ class TestAppConfig:
         assert app_config.description == 'REST API Service for Pictures'
         assert app_config.version == '1.0.0'
         assert app_config.log_level == 'INFO'
-
-        assert app_config.mongo_uri == 'mongodb://localhost:27017'
-        assert app_config.mongo_db_name == 'file_metadata'
-        assert app_config.mongo_collection_name == 'uploads'
 
         assert app_config.file_storage_provider == 'minio'
 
@@ -63,10 +59,6 @@ class TestAppConfig:
         assert app_config.description == 'Image processing service'
         assert app_config.version == '2.5.0'
         assert app_config.log_level == 'INFO'
-        # MongoDB
-        assert app_config.mongo_uri == 'mongodb://localhost:27017'
-        assert app_config.mongo_db_name == 'file_metadata'
-        assert app_config.mongo_collection_name == 'uploads'
         # File Storage Provider
         assert app_config.file_storage_provider == 'minio'
 
@@ -86,13 +78,6 @@ class TestAppConfig:
             app_config.version = '3.0.0'
         with pytest.raises(AttributeError):
             app_config.log_level = 'DEBUG'
-        # MongoDB
-        with pytest.raises(AttributeError):
-            app_config.mongo_uri = 'new-mongo-url'
-        with pytest.raises(AttributeError):
-            app_config.mongo_db_name = 'new-db-name'
-        with pytest.raises(AttributeError):
-            app_config.mongo_collection_name = 'new-collection'
         # File Storage Provider
         with pytest.raises(AttributeError):
             app_config.file_storage_provider = 'aws'
@@ -117,15 +102,6 @@ class TestAppConfig:
         assert hasattr(app_config, 'version')
         assert hasattr(app_config, 'log_level')
 
-        # MongoDB
-        monkeypatch.setenv('MONGO_URI', 'mongodb://localhost:27017')
-        monkeypatch.setenv('MONGO_DB_NAME', 'file_metadata')
-        monkeypatch.setenv('MONGO_COLLECTION_NAME', 'uploads')
-
-        assert hasattr(app_config, 'mongo_uri')
-        assert hasattr(app_config, 'mongo_db_name')
-        assert hasattr(app_config, 'mongo_collection_name')
-
         # File Storage Provider
         monkeypatch.setenv('FILE_STORAGE_PROVIDER', 'minio')
 
@@ -146,19 +122,6 @@ class TestAppConfig:
         )
         assert app_config.version == os.getenv('VERSION', '1.0.0')
         assert app_config.log_level == os.getenv('LOG_LEVEL', 'INFO')
-        # MongoDB
-        assert app_config.mongo_uri == os.getenv(
-            'MONGO_URI',
-            'mongodb://localhost:27017'
-        )
-        assert app_config.mongo_db_name == os.getenv(
-            'MONGO_DB_NAME',
-            'file_metadata'
-        )
-        assert app_config.mongo_collection_name == os.getenv(
-            'MONGO_COLLECTION_NAME',
-            'uploads'
-        )
         # File Storage Provider
         assert app_config.file_storage_provider == os.getenv(
             'FILE_STORAGE_PROVIDER',
@@ -221,9 +184,8 @@ class TestMinioConfig:
             monkeypatch,
             minio_config
     ):
-        """It should verify attribute existence after post_init with custom
+        """It should verify attribute existence after init with custom
         env vars."""
-        # MinIO
         monkeypatch.setenv('MINIO_ENDPOINT', 'http://localhost:9000')
         monkeypatch.setenv('MINIO_ACCESS_KEY', 'admin')
         monkeypatch.setenv('MINIO_SECRET_KEY', 'minio12345')
@@ -238,7 +200,7 @@ class TestMinioConfig:
             self,
             minio_config
     ):
-        """It should verify post_init sets attributes to correct env var
+        """It should verify init sets attributes to correct env var
         values."""
         expected_endpoint_part = os.getenv(
             'MINIO_ENDPOINT',
@@ -294,3 +256,86 @@ class TestMinioConfig:
             monkeypatch.setenv('MINIO_USE_SSL', false_val)
             config = MinioConfig()
             assert config.use_ssl is False, f"Failed for MINIO_SECURE='{false_val}'"
+
+
+class TestMongoConfig:
+    """The MongoConfig Class Tests."""
+
+    @pytest.fixture
+    def mongo_config(self):
+        """Fixture to create an MongoConfig instance."""
+        return MongoConfig()
+
+    def test_mongo_config_defaults(
+            self,
+            mongo_config
+    ):
+        """It should verify default MongoConfig attribute values."""
+        assert mongo_config.uri.get_secret_value() == 'mongodb://localhost:27017'
+        assert mongo_config.db_name.get_secret_value() == 'file_metadata'
+        assert mongo_config.collection_name.get_secret_value() == 'uploads'
+
+    def test_mongo_config_custom_values(
+            self,
+            monkeypatch
+    ):
+        """It should verify MongoConfig attributes with custom
+        environment variables."""
+        monkeypatch.setenv('MONGO_URI', 'mongodb://localhost:27017')
+        monkeypatch.setenv('MONGO_DB_NAME', 'file_metadata')
+        monkeypatch.setenv('MONGO_COLLECTION_NAME', 'uploads')
+
+        mongo_config = MongoConfig()
+
+        assert (
+                mongo_config.uri.get_secret_value() ==
+                'mongodb://localhost:27017'
+        )
+        assert mongo_config.db_name.get_secret_value() == 'file_metadata'
+        assert mongo_config.collection_name.get_secret_value() == 'uploads'
+
+    def test_mongo_config_immutability(
+            self,
+            mongo_config
+    ):
+        """It should ensure MongoConfig instance is immutable."""
+        with pytest.raises(ValidationError):
+            mongo_config.uri = 'new-uri'
+        with pytest.raises(ValidationError):
+            mongo_config.db_name = 'new-db-name'
+        with pytest.raises(ValidationError):
+            mongo_config.collection_name = 'new-collection-name'
+
+    def test_mongo_config_init_sets_attributes(
+            self,
+            monkeypatch,
+            mongo_config
+    ):
+        """It should verify attribute existence after init with custom
+        env vars."""
+        monkeypatch.setenv('MONGO_URI', 'mongodb://localhost:27017')
+        monkeypatch.setenv('MONGO_DB_NAME', 'file_metadata')
+        monkeypatch.setenv('MONGO_COLLECTION_NAME', 'uploads')
+
+        assert hasattr(mongo_config, 'uri')
+        assert hasattr(mongo_config, 'db_name')
+        assert hasattr(mongo_config, 'collection_name')
+
+    def test_mongo_config_init_correct_values(
+            self,
+            mongo_config
+    ):
+        """It should verify init sets attributes to correct env var
+        values."""
+        assert mongo_config.uri.get_secret_value() == os.getenv(
+            'MONGO_URI',
+            'mongodb://localhost:27017'
+        )
+        assert mongo_config.db_name.get_secret_value() == os.getenv(
+            'MONGO_DB_NAME',
+            'file_metadata'
+        )
+        assert mongo_config.collection_name.get_secret_value() == os.getenv(
+            'MONGO_COLLECTION_NAME',
+            'uploads'
+        )
