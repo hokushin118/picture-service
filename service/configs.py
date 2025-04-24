@@ -42,16 +42,6 @@ class AppConfig:
     """Log level of the application, retrieved from the LOG_LEVEL
     environment variable."""
 
-    # MongoDB
-    mongo_uri: str = field(init=False)
-    """MongoDB connection URI."""
-
-    mongo_db_name: str = field(init=False)
-    """MongoDB database name."""
-
-    mongo_collection_name: str = field(init=False)
-    """MongoDB database collection name."""
-
     file_storage_provider: str = field(init=False)
     """File storage provider."""
 
@@ -69,13 +59,6 @@ class AppConfig:
         version: str = os.getenv('VERSION', '1.0.0')
         log_level: str = os.getenv('LOG_LEVEL', 'INFO')
 
-        mongo_uri: str = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
-        mongo_db_name: str = os.getenv('MONGO_DB_NAME', 'file_metadata')
-        mongo_collection_name: str = os.getenv(
-            'MONGO_COLLECTION_NAME',
-            'uploads'
-        )
-
         # File Storage Provider Choice
         file_storage_provider: str = os.getenv(
             'FILE_STORAGE_PROVIDER',
@@ -87,14 +70,6 @@ class AppConfig:
         object.__setattr__(self, 'description', description)
         object.__setattr__(self, 'version', version)
         object.__setattr__(self, 'log_level', log_level)
-
-        object.__setattr__(self, 'mongo_uri', mongo_uri)
-        object.__setattr__(self, 'mongo_db_name', mongo_db_name)
-        object.__setattr__(
-            self,
-            'mongo_collection_name',
-            mongo_collection_name
-        )
 
         object.__setattr__(
             self,
@@ -119,6 +94,27 @@ class MinioConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix='minio_',
+        case_sensitive=False,
+        extra='ignore',
+        frozen=True,
+    )
+
+
+class MongoConfig(BaseSettings):
+    """Encapsulates MongoDB configuration settings (Pydantic V2).
+
+    Retrieves settings from environment variables with sensible defaults.
+    Secrets are handled using Pydantic's SecretStr type.
+
+    This class is immutable.
+    """
+
+    uri: SecretStr
+    db_name: SecretStr
+    collection_name: SecretStr
+
+    model_config = SettingsConfigDict(
+        env_prefix='mongo_',
         case_sensitive=False,
         extra='ignore',
         frozen=True,
