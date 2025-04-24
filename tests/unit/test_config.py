@@ -34,6 +34,10 @@ class TestAppConfig:
         assert app_config.minio_bucket == 'picture-service-data'
         assert app_config.minio_use_ssl is False
 
+        assert app_config.mongo_uri == 'mongodb://localhost:27017'
+        assert app_config.mongo_db_name == 'file_metadata'
+        assert app_config.mongo_collection_name == 'uploads'
+
     def test_app_config_custom_values(self, monkeypatch):
         """It should verify AppConfig attributes with custom environment
         variables."""
@@ -49,6 +53,10 @@ class TestAppConfig:
         monkeypatch.setenv('MINIO_BUCKET', 'picture-service-data')
         monkeypatch.setenv('MINIO_USE_SSL', 'False')
 
+        monkeypatch.setenv('MONGO_URI', 'mongodb://localhost:27017')
+        monkeypatch.setenv('MONGO_DB_NAME', 'file_metadata')
+        monkeypatch.setenv('MONGO_COLLECTION_NAME', 'uploads')
+
         app_config = AppConfig()
         # General
         assert app_config.api_version == 'v2'
@@ -62,6 +70,10 @@ class TestAppConfig:
         assert app_config.minio_secret_key == 'minio12345'
         assert app_config.minio_bucket == 'picture-service-data'
         assert app_config.minio_use_ssl is False
+        # MongoDB
+        assert app_config.mongo_uri == 'mongodb://localhost:27017'
+        assert app_config.mongo_db_name == 'file_metadata'
+        assert app_config.mongo_collection_name == 'uploads'
 
     def test_app_config_immutability(self, app_config):
         """It should ensure AppConfig instance is immutable."""
@@ -87,6 +99,13 @@ class TestAppConfig:
             app_config.minio_bucket = 'new-bucket'
         with pytest.raises(AttributeError):
             app_config.minio_use_ssl = True
+        # MongoDB
+        with pytest.raises(AttributeError):
+            app_config.mongo_uri = 'new-mongo-url'
+        with pytest.raises(AttributeError):
+            app_config.mongo_db_name = 'new-db-name'
+        with pytest.raises(AttributeError):
+            app_config.mongo_collection_name = 'new-collection'
 
     def test_app_config_post_init_sets_attributes(
             self,
@@ -121,6 +140,15 @@ class TestAppConfig:
         assert hasattr(app_config, 'minio_bucket')
         assert hasattr(app_config, 'minio_use_ssl')
 
+        # MongoDB
+        monkeypatch.setenv('MONGO_URI', 'mongodb://localhost:27017')
+        monkeypatch.setenv('MONGO_DB_NAME', 'file_metadata')
+        monkeypatch.setenv('MONGO_COLLECTION_NAME', 'uploads')
+
+        assert hasattr(app_config, 'mongo_uri')
+        assert hasattr(app_config, 'mongo_db_name')
+        assert hasattr(app_config, 'mongo_collection_name')
+
     def test_app_config_post_init_correct_values(self, app_config):
         """It should verify post_init sets attributes to correct env var
         values."""
@@ -153,4 +181,17 @@ class TestAppConfig:
         assert app_config.minio_use_ssl == get_bool_from_env(
             'MINIO_USE_SSL',
             False
+        )
+        # MongoDB
+        assert app_config.mongo_uri == os.getenv(
+            'MONGO_URI',
+            'mongodb://localhost:27017'
+        )
+        assert app_config.mongo_db_name == os.getenv(
+            'MONGO_DB_NAME',
+            'file_metadata'
+        )
+        assert app_config.mongo_collection_name == os.getenv(
+            'MONGO_COLLECTION_NAME',
+            'uploads'
         )
