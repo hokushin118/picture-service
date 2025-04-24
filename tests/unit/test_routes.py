@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.status import HTTP_200_OK
 
-from service import NAME, VERSION
+from service import app_config
 from service.routes import HEALTH_PATH, INFO_PATH, ROOT_PATH
 from service.schemas import HealthCheckDTO, InfoDTO, IndexDTO
 
@@ -72,8 +72,8 @@ class TestInfoEndpoint:
         assert 'uptime' in info
 
         # Validate the values
-        assert info['name'] == NAME
-        assert info['version'] == VERSION
+        assert info['name'] == app_config.name
+        assert info['version'] == app_config.version
 
         # Check that uptime is a string and is not "Not yet started"
         assert isinstance(info['uptime'], str)
@@ -81,8 +81,8 @@ class TestInfoEndpoint:
 
         # Validate against the schema
         info_dto = InfoDTO(**info)
-        assert info_dto.name == NAME
-        assert info_dto.version == VERSION
+        assert info_dto.name == app_config.name
+        assert info_dto.version == app_config.version
         assert isinstance(info_dto.uptime, str)
 
     def test_info_endpoint_no_start_time(

@@ -15,9 +15,6 @@ from fastapi.staticfiles import StaticFiles
 
 from service import (
     app_config,
-    NAME,
-    VERSION,
-    SWAGGER_ENABLED,
     BASE_DIR
 )
 from service.routes import router
@@ -73,11 +70,13 @@ def create_app() -> FastAPI:
         # https://fastapi.tiangolo.com/how-to/conditional-openapi/#conditional-openapi-from-settings-and-env-vars
         # Conditionally enable/disable the OpenAPI schema endpoint
         # Useful for production environments if docs shouldn't be exposed.
-        openapi_url=OPENAPI_URL if SWAGGER_ENABLED else None,
+        openapi_url=OPENAPI_URL if app_config.swagger_enabled else None,
 
         # Standard paths for interactive API documentation UIs
-        docs_url='/docs' if SWAGGER_ENABLED else None,  # Swagger UI path
-        redoc_url='/redoc' if SWAGGER_ENABLED else None,  # ReDoc path
+        # Swagger UI path
+        docs_url='/docs' if app_config.swagger_enabled else None,
+        # ReDoc path
+        redoc_url='/redoc' if app_config.swagger_enabled else None,
 
         # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
         swagger_ui_parameters={
@@ -128,8 +127,8 @@ async def startup() -> None:
     app.state.start_time = datetime.now(timezone.utc)
     logger.info(
         "'%s' version '%s' started at %s",
-        NAME,
-        VERSION,
+        app_config.name,
+        app_config.version,
         app.state.start_time
     )
 
@@ -152,6 +151,6 @@ async def shutdown():
         uptime_str = str(datetime.now(timezone.utc) - start_time)
     logger.info(
         "'%s' shutting down. Total uptime: %s",
-        NAME,
+        app_config.name,
         uptime_str
     )

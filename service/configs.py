@@ -3,9 +3,6 @@ Application Global Configuration.
 """
 from __future__ import annotations
 
-import os
-from dataclasses import dataclass, field
-
 from pydantic import AnyHttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,8 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ######################################################################
 # APPLICATION CONFIGURATION
 ######################################################################
-@dataclass(frozen=True)
-class AppConfig:
+class AppConfig(BaseSettings):
     """Encapsulates application configuration settings, including database
     and runtime parameters.
 
@@ -22,62 +18,41 @@ class AppConfig:
 
     This class is immutable.
     """
-    # General Settings
-    api_version: str = field(init=False)
+    api_version: str
     """The version of the API, retrieved from the API_VERSION environment variable."""
 
-    name: str = field(init=False)
+    name: str
     """The name of the application, retrieved from the NAME
     environment variable."""
 
-    description: str = field(init=False)
+    description: str
     """The description of the application, retrieved from the NAME
     environment variable."""
 
-    version: str = field(init=False)
+    version: str
     """The version of the application, retrieved from the VERSION
     environment variable."""
 
-    log_level: str = field(init=False)
+    log_level: str
     """Log level of the application, retrieved from the LOG_LEVEL
     environment variable."""
 
-    file_storage_provider: str = field(init=False)
+    file_storage_provider: str
     """File storage provider."""
 
-    def __post_init__(self) -> None:
-        """Post-initialization to set derived attributes and validate configuration.
+    swagger_enabled: bool
+    """Whether to enable Swagger for the microservice."""
 
-        Sets the api_version, name, description and version attributes.
-        """
-        api_version: str = os.getenv('API_VERSION', 'v1')
-        name: str = os.getenv('NAME', 'picture-service')
-        description: str = os.getenv(
-            'DESCRIPTION',
-            'REST API Service for Pictures'
-        )
-        version: str = os.getenv('VERSION', '1.0.0')
-        log_level: str = os.getenv('LOG_LEVEL', 'INFO')
-
-        # File Storage Provider Choice
-        file_storage_provider: str = os.getenv(
-            'FILE_STORAGE_PROVIDER',
-            'minio'
-        )
-
-        object.__setattr__(self, 'api_version', api_version)
-        object.__setattr__(self, 'name', name)
-        object.__setattr__(self, 'description', description)
-        object.__setattr__(self, 'version', version)
-        object.__setattr__(self, 'log_level', log_level)
-
-        object.__setattr__(
-            self,
-            'file_storage_provider',
-            file_storage_provider
-        )
+    model_config = SettingsConfigDict(
+        case_sensitive=False,
+        extra='ignore',
+        frozen=True,
+    )
 
 
+######################################################################
+# MINIO CONFIGURATION
+######################################################################
 class MinioConfig(BaseSettings):
     """Encapsulates MinIO file storage configuration settings (Pydantic V2).
 
@@ -88,9 +63,16 @@ class MinioConfig(BaseSettings):
     """
 
     endpoint: AnyHttpUrl
+    """The MinIO server endpoint URL."""
+
     access_key: SecretStr
+    """The MinIO access key."""
+
     secret_key: SecretStr
+    """The MinIO secret key."""
+
     use_ssl: bool = False
+    """Whether to use SSL for the MinIO connection."""
 
     model_config = SettingsConfigDict(
         env_prefix='minio_',
@@ -100,6 +82,9 @@ class MinioConfig(BaseSettings):
     )
 
 
+######################################################################
+# MONGODB CONFIGURATION
+######################################################################
 class MongoConfig(BaseSettings):
     """Encapsulates MongoDB configuration settings (Pydantic V2).
 
@@ -110,8 +95,13 @@ class MongoConfig(BaseSettings):
     """
 
     uri: SecretStr
+    """The MongoDB connection URI."""
+
     db_name: SecretStr
+    """The name of the MongoDB database."""
+
     collection_name: SecretStr
+    """The name of the MongoDB collection."""
 
     model_config = SettingsConfigDict(
         env_prefix='mongo_',

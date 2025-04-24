@@ -16,7 +16,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.status import HTTP_200_OK
 
-from service import NAME, VERSION, BASE_DIR
+from service import app_config, BASE_DIR
 from service.schemas import InfoDTO, HealthCheckDTO, IndexDTO
 
 logger = logging.getLogger(__name__)
@@ -180,7 +180,7 @@ async def info(request: Request) -> InfoDTO:
         uptime = "Error: Invalid start_time format in app state"
 
     return InfoDTO(
-        name=NAME,
-        version=VERSION,
+        name=app_config.name,
+        version=app_config.version,
         uptime=uptime,
     )

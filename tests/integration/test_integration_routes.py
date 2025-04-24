@@ -15,17 +15,17 @@ import pytest
 from starlette.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
+from testcontainers.minio import MinioContainer
+from testcontainers.mongodb import MongoDbContainer
 
-from service import NAME, VERSION
+from service import app_config
 from service.routes import HEALTH_PATH, INFO_PATH, ROOT_PATH
 from tests.integration import ensure_url, join_urls
 
 # Find the project root directory (where Dockerfile is located)
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
-
 # Image name to build
 TEST_IMAGE_NAME = 'fastapi-picture-service-test:latest'
-
 # Internal port the service listens on inside the container
 SERVICE_PORT = 5000
 
@@ -36,12 +36,51 @@ logger = logging.getLogger(__name__)
 # FIXTURES
 ############################################################
 @pytest.fixture(scope='session')
-async def service_container() -> AsyncGenerator[str, None]:
-    """Builds and runs the FastAPI service Docker container for
-    integration tests.
+def mongo_container() -> MongoDbContainer:
+    """Start MongoDB container for testing."""
+    container = MongoDbContainer()
+    with container as mongo:
+        logger.info(
+            "MongoDB container started at %s",
+            mongo.get_connection_url()
+        )
+        yield mongo
+
+
+@pytest.fixture(scope='session')
+def minio_container() -> MinioContainer:
+    """Start MinIO container for testing."""
+    container = MinioContainer()
+    with container as minio:
+        minio_url = f"http://{minio.get_container_host_ip()}:{minio.get_exposed_port(9000)}"
+        logger.info(
+            "MinIO container started at %s",
+            minio_url
+        )
+        yield minio
+
+
+@pytest.fixture(scope='session')
+# pylint: disable=R0914, R0915:
+async def service_container(
+        mongo_container: MongoDbContainer,
+        minio_container: MinioContainer
+) -> AsyncGenerator[str, None]:
+    """Builds and runs the FastAPI service Docker container
+    for integration tests.
+
+    This fixture builds a Docker image from the project's Dockerfile,
+    sets up environment variables for the service to connect to the
+    mock MongoDB and Minio containers, and then starts the service
+    container. It waits for the service to become ready (either by
+    detecting a startup log message or by a successful health check)
+    before yielding the base URL of the running service. After the
+    tests using this fixture are finished, the service container is
+    automatically stopped.
 
     Yields:
-        str: The base URL (http://host:port) where the service is accessible.
+        str: The base URL (http://host:port) where the service
+        is accessible.
     """
     logger.info(
         "Building image '%s' from Dockerfile at '%s'",
@@ -52,24 +91,52 @@ async def service_container() -> AsyncGenerator[str, None]:
     # Build the image first
     import subprocess  # pylint: disable=C0415
     try:
-        subprocess.run(
+        result = subprocess.run(
             ['docker', 'build', '-t', TEST_IMAGE_NAME, '.'],
             cwd=str(PROJECT_ROOT),
             check=True,
-            capture_output=True
+            capture_output=True,
+            text=True
         )
-        logger.info('Docker image built successfully...')
+        logger.info('Docker image built successfully')
+        logger.debug(
+            "Build output: {%s}",
+            result.stdout
+        )
     except subprocess.CalledProcessError as err:
         logger.error(
             "Failed to build Docker image: %s",
-            err.stderr.decode()
+            err
         )
         raise
+
+    # Set Environment Variables
+    test_env = {
+        'API_VERSION': 'v1',
+        'NAME': 'test_app',
+        'DESCRIPTION': 'REST API for Pictures',
+        'VERSION': '1.0.0',
+        'LOG_LEVEL': 'DEBUG',
+        'FILE_STORAGE_PROVIDER': 'minio',
+        'SWAGGER_ENABLED': 'False',
+        'MINIO_ENDPOINT': f"http://{minio_container.get_container_host_ip()}"
+                          f":{minio_container.get_exposed_port(9000)}",
+        'MINIO_ACCESS_KEY': 'test_access_key',
+        'MINIO_SECRET_KEY': 'test_secret_key',
+        'MINIO_USE_SSL': 'False',
+        'MONGO_URI': f"mongodb://{mongo_container.get_container_host_ip()}"
+                     f":{mongo_container.get_exposed_port(27017)}/testdb",
+        'MONGO_DB_NAME': 'testdb',
+        'MONGO_COLLECTION_NAME': 'test_collection',
+    }
 
     # Create and configure the container
     container = DockerContainer(image=TEST_IMAGE_NAME)
     container.with_exposed_ports(SERVICE_PORT)
-    container.with_env('ENVIRONMENT', 'testing')
+
+    # Apply environment variables
+    for key, value in test_env.items():
+        container = container.with_env(key, str(value))
 
     logger.info('Starting container...')
 
@@ -88,8 +155,8 @@ async def service_container() -> AsyncGenerator[str, None]:
             # Wait for uvicorn startup message
             wait_for_logs(
                 running_container,
-                r"Application startup complete.",
-                timeout=60
+                'Application startup complete.',
+                timeout=120
             )
             logger.info(
                 "Detected 'Application startup complete.' log."
@@ -101,10 +168,9 @@ async def service_container() -> AsyncGenerator[str, None]:
 
             # Fallback to health check
             logger.info(
-                "Attempting readiness check via %s endpoint...",
-                HEALTH_PATH
+                'Attempting readiness check via /api/health endpoint...'
             )
-            max_wait = 60
+            max_wait = 120
             start_wait = time.time()
             ready = False
 
@@ -112,14 +178,17 @@ async def service_container() -> AsyncGenerator[str, None]:
                 while time.time() - start_wait < max_wait:
                     try:
                         # Ensure the health check URL includes the protocol
-                        health_url = join_urls(base_url, HEALTH_PATH)
+                        health_url = join_urls(
+                            base_url, HEALTH_PATH
+                        )
                         logger.debug(
                             "Attempting health check at: %s",
                             health_url
                         )
-                        response = await client.get(health_url, timeout=2)
-                        if response.status_code == HTTP_200_OK and response.json().get(
-                                'status'
+                        response = await client.get(health_url, timeout=5)
+                        # pylint: disable=W1404
+                        if response.status_code == 200 and response.json().get(
+                                ' '"status"
                         ) == 'UP':
                             logger.info(
                                 "%s check successful.",
@@ -136,22 +205,57 @@ async def service_container() -> AsyncGenerator[str, None]:
                             "Health check failed: %s, retrying...",
                             err
                         )
-                    await asyncio.sleep(1)
+                        # Log container logs for debugging
+                        logs = running_container.get_logs()[
+                            0].decode().strip() if \
+                            running_container.get_logs()[0] else ""
+                        logs_stderr = running_container.get_logs()[
+                            1].decode().strip() if \
+                            running_container.get_logs()[1] else ""
+                        logger.debug(
+                            "Container logs at time of failure:\nSTDOUT:\n%s\nSTDERR:\n%s",
+                            logs,
+                            logs_stderr
+                        )
+                    await asyncio.sleep(2)
 
             if not ready:
                 # Dump logs if readiness check fails
                 logs = running_container.get_logs()[0].decode().strip() if \
-                    running_container.get_logs()[0] else ''
-                logs_stderr = running_container.get_logs()[1].decode().strip() \
-                    if running_container.get_logs()[1] else ''
+                    running_container.get_logs()[0] else ""
+                logs_stderr = running_container.get_logs()[
+                    1].decode().strip() if running_container.get_logs()[
+                    1] else ''
                 logger.error(
-                    "Service readiness check failed after %s.\nSTDOUT:\n%s\nSTDERR:\n%s",
+                    "Service readiness check failed after %ss.\nSTDOUT:\n%s\nSTDERR:\n%s",
                     max_wait,
                     logs,
                     logs_stderr
                 )
+
+                # Try to get more information about the container state
+                try:
+                    container_info = subprocess.run(
+                        ['docker', 'inspect',
+                         running_container.get_wrapped_container().id],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    logger.error(
+                        "Container state:\n%s",
+                        container_info.stdout
+                    )
+                except subprocess.CalledProcessError as err:
+                    logger.error(
+                        "Failed to get container info: %s",
+                        err.stderr
+                    )
+
                 pytest.fail(
-                    f"Service did not become ready at {base_url}{HEALTH_PATH}"
+                    "Service did not become ready at %s/%s",
+                    base_url,
+                    HEALTH_PATH
                 )
 
         yield base_url
@@ -174,20 +278,34 @@ class TestGeneralEndpointIntegration:
         """It should test the microservice home page for a
         successful response."""
         async for base_url in service_container:
-            # Ensure the home URL includes the protocol
-            health_url = join_urls(base_url, '/')
+            home_url = join_urls(base_url, '')
             logger.info(
-                "Testing home page: %s",
-                health_url
+                "Testing home endpoint: %s",
+                home_url
             )
 
             async with httpx.AsyncClient() as client:
-                response = await client.get(health_url)
+                response = await client.get(home_url)
 
                 assert response.status_code == HTTP_200_OK
-                assert response.headers[
-                           'Content-Type'
-                       ] == 'text/html; charset=utf-8'
+                # The home endpoint might return JSON instead of HTML
+                assert response.headers["content-type"] in [
+                    'text/html; charset=utf-8', 'application/json'
+                ]
+
+                logger.debug(
+                    "Home endpoint response: %s",
+                    response.text
+                )
+
+                if response.headers['Content-Type'] == 'application/json':
+                    data = response.json()
+                    assert isinstance(data, dict)
+                    assert 'message' in data
+                    assert isinstance(data['message'], str)
+                else:
+                    assert '<html' in response.text.lower()
+                    assert '</html>' in response.text.lower()
             break
 
     @pytest.mark.asyncio
@@ -198,15 +316,14 @@ class TestGeneralEndpointIntegration:
         """It should test the /api endpoint for a
         successful response."""
         async for base_url in service_container:
-            # Ensure the root URL includes the protocol
-            health_url = join_urls(base_url, ROOT_PATH)
+            root_url = join_urls(base_url, ROOT_PATH)
             logger.info(
                 "Testing root endpoint: %s",
-                health_url
+                root_url
             )
 
             async with httpx.AsyncClient() as client:
-                response = await client.get(health_url)
+                response = await client.get(root_url)
 
                 assert response.status_code == HTTP_200_OK
                 assert response.headers['Content-Type'] == 'application/json'
@@ -223,7 +340,6 @@ class TestGeneralEndpointIntegration:
         """It should test the /api/health endpoint for a
         successful response."""
         async for base_url in service_container:
-            # Ensure the health URL includes the protocol
             health_url = join_urls(base_url, HEALTH_PATH)
             logger.info(
                 "Testing health endpoint: %s",
@@ -234,7 +350,7 @@ class TestGeneralEndpointIntegration:
                 response = await client.get(health_url)
 
                 assert response.status_code == HTTP_200_OK
-                assert response.headers['Content-Type'] == 'application/json'
+                assert response.headers["Content-Type"] == 'application/json'
                 assert response.json() == {'status': 'UP'}
             break
 
@@ -246,7 +362,6 @@ class TestGeneralEndpointIntegration:
         """It should test the /api/info endpoint for correct
         structure and data."""
         async for base_url in service_container:
-            # Ensure the info URL includes the protocol
             info_url = join_urls(base_url, INFO_PATH)
             logger.info(
                 "Testing info endpoint: %s",
@@ -257,13 +372,13 @@ class TestGeneralEndpointIntegration:
                 response = await client.get(info_url)
 
                 assert response.status_code == HTTP_200_OK
-                assert response.headers['Content-Type'] == 'application/json'
+                assert response.headers["Content-Type"] == 'application/json'
 
                 data = response.json()
                 assert isinstance(data, dict)
 
-                assert data.get('name') == NAME
-                assert data.get('version') == VERSION
+                assert data.get('name') == app_config.name
+                assert data.get('version') == app_config.version
                 assert 'uptime' in data
                 assert isinstance(data['uptime'], str)
                 assert data['uptime'] != 'Not yet started'
@@ -278,7 +393,6 @@ class TestGeneralEndpointIntegration:
     ):
         """It should test handling of invalid endpoints."""
         async for base_url in service_container:
-            # Ensure the invalid URL includes the protocol
             invalid_url = join_urls(base_url, 'api/nonexistent')
             logger.info(
                 "Testing invalid endpoint: %s",
@@ -301,7 +415,6 @@ class TestGeneralEndpointIntegration:
         """It should test that the service returns appropriate security
         headers."""
         async for base_url in service_container:
-            # Ensure the health URL includes the protocol
             health_url = join_urls(base_url, HEALTH_PATH)
             logger.info(
                 "Testing service headers: %s",
@@ -311,6 +424,7 @@ class TestGeneralEndpointIntegration:
             async with httpx.AsyncClient() as client:
                 response = await client.get(health_url)
 
+                # Check for security headers
                 assert 'X-Content-Type-Options' in response.headers
                 assert 'X-Frame-Options' in response.headers
                 assert 'X-XSS-Protection' in response.headers

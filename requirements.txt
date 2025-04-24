@@ -28,6 +28,9 @@ black==22.3.0
 
 # Testing dependencies
 testcontainers==4.9.2
+testcontainers-mongodb==0.0.1rc1
+testcontainers-minio==0.0.1rc1
+
 pytest==7.4.2
 pytest-asyncio==0.21.1
 httpx==0.25.0

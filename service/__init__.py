@@ -10,21 +10,12 @@ import os
 import pathlib
 
 from cba_core_lib.logging import init_logging
-from cba_core_lib.utils.env_utils import get_bool_from_env
 from dotenv import load_dotenv
 
 from service.configs import AppConfig
 
-# Application configuration
-app_config = AppConfig()
-
 # Get the root logger
 logger = logging.getLogger()
-
-# Initialize logging with the root logger.
-# The logging configuration sets the application's logger to DEBUG level.
-# This will affect all loggers in the application.
-init_logging(logger, log_level=app_config.log_level)
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 """Path to the base directory of the microservice."""
@@ -94,9 +85,10 @@ def load_environment_variables() -> None:
 # Load environment at startup
 load_environment_variables()
 
-# Retrieving Information (Environment Variables Example):
-# This is a common way to manage configuration, especially in
-# containerized environments.
-VERSION = os.environ.get('VERSION', '0.0.1')  # Default if not set
-NAME = os.environ.get('NAME', 'picture-service')
-SWAGGER_ENABLED = get_bool_from_env('SWAGGER_ENABLED', False)
+# Application configuration
+app_config = AppConfig()
+
+# Initialize logging with the root logger.
+# The logging configuration sets the application's logger to DEBUG level.
+# This will affect all loggers in the application.
+init_logging(logger, log_level=app_config.log_level)
