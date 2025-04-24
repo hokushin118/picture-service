@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
-from service import VERSION, NAME
+from service import app_config
 
 MIN_LENGTH = 1
 
@@ -148,13 +148,13 @@ class InfoDTO(BaseModel):
         ...,
         min_length=MIN_LENGTH,
         description='The configured name of the running service.',
-        examples=[NAME]
+        examples=[app_config.name]
     )
     version: str = Field(
         ...,
         min_length=MIN_LENGTH,
         description='The current deployed version identifier of the service.',
-        examples=[VERSION]
+        examples=[app_config.version]
     )
     uptime: str = Field(
         ...,
