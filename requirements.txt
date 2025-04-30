@@ -39,7 +39,7 @@ testcontainers-minio==0.0.1rc1   # MinIO support for testcontainers
 # --- Code Quality & Formatting ---
 pylint==2.14.0                # Static code analysis (Linter)
 flake8==4.0.1                 # Style guide enforcement (Linter)
-black==22.3.0                 # Uncompromising code formatter
+black==24.3.0                 # Uncompromising code formatter
 
 # --- Code Coverage ---
 pytest-cov==6.1.1             # Pytest plugin for measuring coverage via coverage.py
