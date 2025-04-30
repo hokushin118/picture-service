@@ -218,3 +218,9 @@ class InfoDTO(BaseModel):
             characters.
         """
         return check_not_whitespace_only(value)
+
+
+class UploadResponseDTO(BaseModel):
+    """Represents the response body for the file upload endpoint. Provides
+    metadata about the uploaded file.
+    """

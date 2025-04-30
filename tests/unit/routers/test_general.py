@@ -1,5 +1,5 @@
 """
-Configs Unit Test Suite.
+General Routers Unit Test Suite.
 
 Test cases can be run with the following:
   pytest -v --cov=service --cov-report=term-missing --cov-branch
@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from starlette.status import HTTP_200_OK
 
 from service import app_config
-from service.routes import HEALTH_PATH, INFO_PATH, ROOT_PATH
+from service.routers.general import HEALTH_PATH, INFO_PATH, ROOT_PATH
 from service.schemas import HealthCheckDTO, InfoDTO, IndexDTO
 
 

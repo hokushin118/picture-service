@@ -1,23 +1,25 @@
 """
 Package: main
-This package configures the FastAPI application, and sets up service routes.
+
+This package configures the FastAPI application, and sets up service routers.
 
 It also handles application-level logging.
 """
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from cba_core_lib.utils.enums import UserRole
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-
 from service import (
     app_config,
     BASE_DIR
 )
-from service.routes import router
+from service.routers.general import general_router
+from service.routers.pictures import picture_router
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,43 @@ tags_metadata = [
                        'and operations.'
     },
 ]
+
+
+# --- Lifespan Event Handler ---
+@asynccontextmanager
+async def lifespan(current_app: FastAPI):
+    """Manages application startup and shutdown events.
+
+    - On startup: Records the start time in app state and logs startup message.
+    - On shutdown: Logs shutdown message including total uptime.
+    """
+    # --- Startup Logic ---
+    start_time = datetime.now(timezone.utc)
+    current_app.state.start_time = start_time  # Store start time in app state
+    logger.info(
+        "'%s' version '%s' starting up at %s...",
+        app_config.name,
+        app_config.version,
+        start_time
+    )
+
+    yield
+
+    # --- Shutdown Logic ---
+    shutdown_time = datetime.now(timezone.utc)
+    uptime_str = "N/A (start_time not found)"
+    stored_start_time = getattr(current_app.state, 'start_time', None)
+    if isinstance(stored_start_time, datetime):
+        uptime_delta = shutdown_time - stored_start_time
+        uptime_str = str(uptime_delta).split('.', maxsplit=1)[0]
+    elif stored_start_time:
+        logger.warning('Invalid start_time format found in app state.')
+
+    logger.info(
+        "'%s' shutting down. Total uptime: %s",
+        app_config.name,
+        uptime_str
+    )
 
 
 # --- FastAPI Application Setup ---
@@ -83,7 +122,9 @@ def create_app() -> FastAPI:
             # Sort operations within tags alphabetically
             # by HTTP method (GET, POST, PUT ...)
             'operationsSorter': 'method'
-        }
+        },
+
+        lifespan=lifespan
     )
 
     # Mount the static files directory
@@ -100,7 +141,9 @@ def create_app() -> FastAPI:
 
     # Include the main application router
     # This registers all the paths defined in the 'router' object
-    current_app.include_router(router)
+    current_app.include_router(general_router)
+    current_app.include_router(picture_router)
+
     logger.info('Application router included successfully.')
 
     return current_app
@@ -110,47 +153,3 @@ def create_app() -> FastAPI:
 # Swagger: http://127.0.0.1:8000/docs auto generated
 # Redoc: http://127.0.0.1:8000/redoc
 app = create_app()
-
-
-@app.on_event('startup')
-async def startup() -> None:
-    """Logs the successful startup of the application.
-
-    This function is executed when the FastAPI application starts.
-    It records the start time in the application state and logs an
-    informational message containing the application name, version,
-    and start time.
-
-    Returns:
-        None.  This function does not return any value.
-    """
-    app.state.start_time = datetime.now(timezone.utc)
-    logger.info(
-        "'%s' version '%s' started at %s",
-        app_config.name,
-        app_config.version,
-        app.state.start_time
-    )
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    """Logs the shutdown of the application and the total uptime.
-
-    This function is executed when the FastAPI application shuts down. It
-    calculates the application's uptime (if the start time was recorded) and
-    logs an informational message including the application name and its total
-    uptime.
-
-    Returns:
-        None.  This function does not return a value.
-    """
-    start_time = getattr(app.state, 'start_time', None)
-    uptime_str = "N/A"
-    if start_time:
-        uptime_str = str(datetime.now(timezone.utc) - start_time)
-    logger.info(
-        "'%s' shutting down. Total uptime: %s",
-        app_config.name,
-        uptime_str
-    )

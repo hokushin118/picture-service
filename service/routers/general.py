@@ -1,7 +1,8 @@
 """
-Picture Routes.
+General API Routers.
 
-This microservice handles the application pictures.
+This module defines the main API routers for the Picture microservice. These
+routers are accessible to anonymous users and do not require authentication.
 """
 from __future__ import annotations
 
@@ -14,19 +15,20 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from starlette.status import HTTP_200_OK
+from starlette.status import (
+    HTTP_200_OK
+)
 
 from service import app_config, BASE_DIR
+from service.routers import ROOT_PATH
 from service.schemas import InfoDTO, HealthCheckDTO, IndexDTO
 
 logger = logging.getLogger(__name__)
 
-ROOT_PATH = '/api'
 HEALTH_PATH = f"{ROOT_PATH}/health"
 INFO_PATH = f"{ROOT_PATH}/info"
-ACCOUNTS_PATH_V1 = f"{ROOT_PATH}/v1/pictures"
 
-router = APIRouter(
+general_router = APIRouter(
     prefix='',
     tags=['General']
 )
@@ -41,7 +43,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / 'templates'))
 ######################################################################
 # HOME PAGE
 ######################################################################
-@router.get(
+@general_router.get(
     '/',
     name='general:home',
     response_class=HTMLResponse,
@@ -51,8 +53,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / 'templates'))
     description='Serves the main HTML landing page for the microservice. '
                 'Requires Jinja2 templates to be configured and an '
                 '`index.html` file in the templates directory.',
-    response_description='The HTML content of the microservice home page.',
-    tags=['General'],
+    response_description='The HTML content of the microservice home page.'
 )
 async def home(
         request: Request
@@ -85,7 +86,7 @@ async def home(
 ######################################################################
 # GET INDEX
 ######################################################################
-@router.get(
+@general_router.get(
     ROOT_PATH,
     name='general:index',
     response_model=IndexDTO,
@@ -94,8 +95,7 @@ async def home(
     description='It always returns a 200 OK status with the message: '
                 '"Welcome to the Picture API".</br></br>'
                 'This endpoint is accessible to anonymous users.',
-    response_description='Welcome message for the API',
-    tags=['General']
+    response_description='Welcome message for the API'
 )
 async def index() -> IndexDTO:
     """Returns a welcome message for the API.
@@ -114,7 +114,7 @@ async def index() -> IndexDTO:
 ############################################################
 # GET HEALTH
 ############################################################
-@router.get(
+@general_router.get(
     HEALTH_PATH,
     name='general:health',
     response_model=HealthCheckDTO,
@@ -124,8 +124,7 @@ async def index() -> IndexDTO:
                 'it always returns a 200 OK status with a "status: UP" '
                 'message.</br></br>This endpoint is accessible to '
                 'anonymous users.',
-    response_description='Health status of the service',
-    tags=['General']
+    response_description='Health status of the service'
 )
 async def health() -> HealthCheckDTO:
     """Performs a health check of the application.
@@ -145,7 +144,7 @@ async def health() -> HealthCheckDTO:
 ############################################################
 # GET INFO
 ############################################################
-@router.get(
+@general_router.get(
     INFO_PATH,
     name='general:info',
     response_model=InfoDTO,
@@ -154,8 +153,7 @@ async def health() -> HealthCheckDTO:
     description='Provides information about the service, '
                 'including its name, version, and uptime.</br></br>'
                 'This endpoint is accessible to anonymous users.',
-    response_description='Information about the service',
-    tags=['General']
+    response_description='Information about the service'
 )
 async def info(request: Request) -> InfoDTO:
     """Retrieves the current version of the application.
@@ -177,7 +175,7 @@ async def info(request: Request) -> InfoDTO:
         uptime_delta = datetime.now(timezone.utc) - start_time
         uptime = str(uptime_delta)
     elif start_time:
-        uptime = "Error: Invalid start_time format in app state"
+        uptime = 'Error: Invalid start_time format in app state'
 
     return InfoDTO(
         name=app_config.name,
