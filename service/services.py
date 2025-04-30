@@ -76,9 +76,9 @@ class PictureService:
         if not file_content:
             raise InvalidInputError('Cannot upload an empty file.')
         if not original_filename:
+            # Decide policy: generate a name or require it
             raise InvalidInputError(
-                'Original filename is required for upload.'
-            )
+                'Original filename is required for upload.')
         if not target_bucket:
             raise InvalidInputError('Target bucket must be specified.')
 
@@ -152,4 +152,10 @@ class PictureService:
             ) from err
 
         # 6. Return Success Response
-        return UploadResponseDTO()
+        return UploadResponseDTO(
+            original_filename=original_filename,
+            object_name=object_name,
+            file_url=file_url,
+            size=file_size,
+            etag=etag
+        )

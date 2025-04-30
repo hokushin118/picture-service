@@ -19,7 +19,7 @@ from tests import (
     TEST_URL,
     TEST_CONTENT,
     TEST_CONTENT_TYPE,
-    TEST_BUCKET_NAME
+    TEST_BUCKET_NAME, TEST_FILE_NAME
 )
 
 
@@ -92,14 +92,31 @@ class TestPictureService:
             mock_storage_service
     ):
         """It should return UploadResponseDTO on successful file upload."""
+        # Arrange
+        mock_storage_service.upload_file.return_value = (
+            TEST_OBJECT_NAME,
+            TEST_ETAG,
+            TEST_FILE_SIZE
+        )
+        mock_storage_service.get_file_url.return_value = TEST_URL
+
+        # Act
         result = await picture_service.upload_file(
             file_content=TEST_CONTENT,
-            original_filename=TEST_OBJECT_NAME,
+            original_filename=TEST_FILE_NAME,
             content_type=TEST_CONTENT_TYPE,
             target_bucket=TEST_BUCKET_NAME
         )
 
+        # Assert
         assert isinstance(result, UploadResponseDTO)
+        assert result.original_filename == TEST_FILE_NAME
+        assert result.object_name == TEST_OBJECT_NAME
+        assert str(result.file_url) == TEST_URL
+        assert result.size == TEST_FILE_SIZE
+        assert result.etag == TEST_ETAG
+
+        # Verify service calls
         mock_storage_service.upload_file.assert_called_once()
         mock_storage_service.get_file_url.assert_called_once_with(
             TEST_BUCKET_NAME,
