@@ -5,8 +5,7 @@ All schemas are stored in this module.
 """
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
-
+from pydantic import BaseModel, Field, field_validator, HttpUrl
 from service import app_config
 
 MIN_LENGTH = 1
@@ -33,8 +32,11 @@ def check_not_whitespace_only(
     Raises:
         ValueError: If the string consists only of whitespace characters.
     """
-    if value and not value.strip():
-        raise ValueError('Field cannot consist only of whitespace.')
+    if isinstance(value, str):
+        if not value or value.isspace():
+            raise ValueError(
+                'Field cannot consist only of whitespace.'
+            )
     return value
 
 
@@ -163,24 +165,20 @@ class InfoDTO(BaseModel):
         examples=['0:15:32.548123', '3 days, 2:05:55.987654']
     )
 
-    @field_validator('name')
+    @field_validator('name', 'version', mode='before')
     # pylint: disable=no-self-argument
-    def check_name_not_whitespace_only(
+    def check_field_not_whitespace_only(
             cls,
             value: str
     ) -> str:
-        """Validates that the name string is not composed solely
-        of whitespace.
-
-        This validator is applied to the 'name' field of the
-        InfoDTO model. It uses the `check_not_whitespace_only`
-        function to perform the validation.
+        """Validates that specific string fields are not None, empty, or
+        contain only whitespace.
 
         Args:
             cls: The class of the model (InfoDTO).
             This is automatically passed by Pydantic and is conventionally
             named `cls`.
-            value (str): The value of the 'name' field to be validated.
+            value (str): The value of the field to be validated.
 
         Returns:
             str: The validated name string.
@@ -191,24 +189,56 @@ class InfoDTO(BaseModel):
         """
         return check_not_whitespace_only(value)
 
-    @field_validator('version')
+
+class UploadResponseDTO(BaseModel):
+    """Represents the response body for the file upload endpoint. Provides
+    metadata about the uploaded file.
+    """
+    original_filename: str = Field(
+        ...,
+        min_length=MIN_LENGTH,
+        description='The original filename provided during upload.',
+        examples=['vacation_photo.png']
+    )
+    object_name: str = Field(
+        ...,
+        min_length=MIN_LENGTH,
+        description='The final name (key) of the object stored in the bucket.',
+        examples=['user_data/vacation_photo_uuid123.png']
+    )
+    file_url: HttpUrl = Field(
+        ...,
+        description='The accessible URL for the uploaded file.',
+        examples=[
+            'https://my-minio.example.com/pictures/user_data/vacation_photo_uuid123.png']
+    )
+    size: int = Field(
+        ...,
+        ge=0,
+        description='The size of the uploaded file in bytes.',
+        examples=[5242880]  # 5 MB example
+    )
+    etag: str = Field(
+        ...,
+        min_length=MIN_LENGTH,
+        description='The ETag (Entity Tag) of the uploaded object from storage.',
+        examples=['fba9dede5f27731c9771645a39863328']
+    )
+
+    @field_validator('original_filename', 'object_name', 'etag', mode='before')
     # pylint: disable=no-self-argument
-    def check_version_not_whitespace_only(
+    def check_field_not_whitespace_only(
             cls,
             value: str
     ) -> str:
-        """Validates that the version string is not composed solely
-        of whitespace.
-
-        This validator is applied to the 'version' field of the
-        InfoDTO model. It uses the `check_not_whitespace_only`
-        function to perform the validation.
+        """Validates that specific string fields are not None, empty, or
+        contain only whitespace.
 
         Args:
-            cls: The class of the model (InfoDTO).
+            cls: The class of the model (UploadResponseDTO).
             This is automatically passed by Pydantic and is conventionally
             named `cls`.
-            value (str): The value of the 'version' field to be validated.
+            value (str): The value of the field to be validated.
 
         Returns:
             str: The validated version string.
@@ -218,9 +248,3 @@ class InfoDTO(BaseModel):
             characters.
         """
         return check_not_whitespace_only(value)
-
-
-class UploadResponseDTO(BaseModel):
-    """Represents the response body for the file upload endpoint. Provides
-    metadata about the uploaded file.
-    """

@@ -7,8 +7,20 @@ Test cases can be run with the following:
 import pytest
 from pydantic import ValidationError
 
-from service.schemas import InfoDTO, HealthCheckDTO, check_not_whitespace_only, \
-    IndexDTO
+from service.schemas import (
+    InfoDTO,
+    HealthCheckDTO,
+    check_not_whitespace_only,
+    IndexDTO,
+    UploadResponseDTO
+)
+from tests import (
+    TEST_FILE_NAME,
+    TEST_OBJECT_NAME,
+    TEST_URL,
+    TEST_FILE_SIZE,
+    TEST_ETAG, create_upload_response_dto
+)
 
 
 class TestCheckNotWhitespaceOnly:
@@ -83,8 +95,7 @@ class TestIndexDTO:
     """IndexDTO Schema Tests."""
 
     def test_indexdto_valid_message(self):
-        """It should verify that a valid message string is accepted
-        without errors."""
+        """It should return the original values when given valid values."""
         index_dto = IndexDTO(message='Welcome to the Picture API!')
         assert index_dto.message == 'Welcome to the Picture API!'
 
@@ -113,8 +124,7 @@ class TestHealthCheckDTO:
     """HealthCheckDTO Schema Tests."""
 
     def test_healthcheckdto_valid_status(self):
-        """It should verify that a valid status string is accepted
-        without errors."""
+        """It should return the original values when given valid values."""
         health_check_dto = HealthCheckDTO(status='UP')
         assert health_check_dto.status == 'UP'
 
@@ -143,8 +153,7 @@ class TestInfoDTO:
     """InfoDTO Schema Tests."""
 
     def test_infodto_valid_data(self):
-        """It should verify that providing an invalid data type for
-        'name' (e.g., a number) raises an error."""
+        """It should return the original values when given valid values."""
         info_dto = InfoDTO(
             name='test_service',
             version='1.2.3',
@@ -189,3 +198,132 @@ class TestInfoDTO:
         a ValidationError."""
         with pytest.raises(ValidationError):
             InfoDTO(name='test_service', version='1.2.3')
+
+
+class TestUploadResponseDTO:
+    """UploadResponseDTO Schema Tests."""
+
+    def test_uploadresponsedto_valid_data(self):
+        """It should return the original values when given valid values."""
+        upload_response_dto = create_upload_response_dto()
+
+        assert upload_response_dto.original_filename == TEST_FILE_NAME
+        assert upload_response_dto.object_name == TEST_OBJECT_NAME
+        assert str(upload_response_dto.file_url) == TEST_URL
+        assert upload_response_dto.size == TEST_FILE_SIZE
+        assert upload_response_dto.etag == TEST_ETAG
+
+    def test_uploadresponsedto_invalid_original_filename(self):
+        """It should verify that providing an invalid data type for
+        'original_filename' (e.g., a number) raises an error."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=123,
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_infodto_invalid_object_name(self):
+        """It should check that providing an invalid data type for 'object_name'
+        (e.g., None) raises an error."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=123,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_invalid_file_url(self):
+        """It should confirm that providing an invalid data type for 'file_url'
+        (e.g., a number) raises an error."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                file_url=123,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_invalid_size(self):
+        """It should confirm that providing an invalid data type for 'size'
+        (e.g., a number) raises an error."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                size='23M',
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_invalid_etag(self):
+        """It should confirm that providing an invalid data type for 'etag'
+        (e.g., a number) raises an error."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE,
+                etag=123
+            )
+
+    def test_uploadresponsedto_missing_original_filename(self):
+        """It should verify that omitting the 'original_filename' field raises a
+        ValidationError."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_missing_object_name(self):
+        """It should confirm that omitting the 'object_name' field raises
+        a ValidationError."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_missing_file_url(self):
+        """It should check that omitting the 'file_url' field raises
+        a ValidationError."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                size=TEST_FILE_SIZE,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_missing_size(self):
+        """It should check that omitting the 'size' field raises
+        a ValidationError."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                etag=TEST_ETAG
+            )
+
+    def test_uploadresponsedto_missing_etag(self):
+        """It should check that omitting the 'etag' field raises
+        a ValidationError."""
+        with pytest.raises(ValidationError):
+            UploadResponseDTO(
+                original_filename=TEST_FILE_NAME,
+                object_name=TEST_OBJECT_NAME,
+                file_url=TEST_URL,
+                size=TEST_FILE_SIZE
+            )

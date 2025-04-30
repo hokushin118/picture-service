@@ -4,6 +4,8 @@ Package for the application tests.
 """
 import pathlib
 
+from service.schemas import UploadResponseDTO
+
 # Find the project root directory (where Dockerfile is located)
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 # Image name to build
@@ -12,6 +14,7 @@ TEST_IMAGE_NAME = 'fastapi-picture-service-test:latest'
 SERVICE_PORT = 5000
 
 TEST_BUCKET_NAME = 'test-bucket'
+TEST_FILE_NAME = 'test-object.txt'
 TEST_OBJECT_NAME = 'test-object.txt'
 TEST_CONTENT = b"test content"
 TEST_CONTENT_TYPE = 'text/plain'
@@ -70,3 +73,22 @@ def join_urls(
     base = base.rstrip('/')
     path = path.lstrip('/')
     return f"{base}/{path}"
+
+
+def create_upload_response_dto() -> UploadResponseDTO:
+    """Creates an UploadResponseDTO with predefined test values.
+
+    This function constructs an UploadResponseDTO object populated with
+    constants defined for testing purposes.  It's intended to provide a
+    consistent, valid DTO for use in test cases.
+
+    Returns:
+        UploadResponseDTO: An instance of UploadResponseDTO with test data.
+    """
+    return UploadResponseDTO(
+        original_filename=TEST_FILE_NAME,
+        object_name=TEST_OBJECT_NAME,
+        file_url=TEST_URL,
+        size=TEST_FILE_SIZE,
+        etag=TEST_ETAG
+    )

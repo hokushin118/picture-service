@@ -16,8 +16,11 @@ from service.routers.pictures import (
     picture_router,
     PICTURES_PATH_V1
 )
-from service.schemas import UploadResponseDTO
 from service.services import PictureService
+from tests import (
+    TEST_CONTENT_TYPE,
+    TEST_FILE_NAME, create_upload_response_dto
+)
 
 
 ############################################################
@@ -133,12 +136,16 @@ class TestFileUpload:
             content=b"This is a test file.",
             content_type='text/plain'
         )
+
+        # Create response
+        upload_request_dto = create_upload_response_dto()
+
         # Configure the mock service to return a successful result
-        mock_picture_service.upload_file.return_value = UploadResponseDTO()
+        mock_picture_service.upload_file.return_value = upload_request_dto
 
         response = test_client.post(
             PICTURES_PATH_V1,
-            files={'file': ('test_file.txt', test_file.file, 'text/plain')}
+            files={'file': (TEST_FILE_NAME, test_file.file, TEST_CONTENT_TYPE)}
         )
 
         assert response.status_code == HTTP_201_CREATED
