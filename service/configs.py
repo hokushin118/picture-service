@@ -3,7 +3,7 @@ Application Global Configuration.
 """
 from __future__ import annotations
 
-from pydantic import AnyHttpUrl, SecretStr
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,38 +44,6 @@ class AppConfig(BaseSettings):
     """Whether to enable Swagger for the microservice."""
 
     model_config = SettingsConfigDict(
-        case_sensitive=False,
-        extra='ignore',
-        frozen=True,
-    )
-
-
-######################################################################
-# MINIO CONFIGURATION
-######################################################################
-class MinioConfig(BaseSettings):
-    """Encapsulates MinIO file storage configuration settings (Pydantic V2).
-
-    Retrieves settings from environment variables with sensible defaults.
-    Secrets are handled using Pydantic's SecretStr type.
-
-    This class is immutable.
-    """
-
-    endpoint: AnyHttpUrl
-    """The MinIO server endpoint URL."""
-
-    access_key: SecretStr
-    """The MinIO access key."""
-
-    secret_key: SecretStr
-    """The MinIO secret key."""
-
-    use_ssl: bool = False
-    """Whether to use SSL for the MinIO connection."""
-
-    model_config = SettingsConfigDict(
-        env_prefix='minio_',
         case_sensitive=False,
         extra='ignore',
         frozen=True,

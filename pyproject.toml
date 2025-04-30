@@ -28,13 +28,6 @@ omit = [
 ]
 show_missing = true
 
-
-# --- Flake8 Configuration ---
-[tool.flake8]
-per-file-ignores = [
-    "*/__init__.py: F401, E402, C901",
-]
-
 # --- Pylint Configuration ---
 [tool.pylint]
 disable = [
