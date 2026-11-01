@@ -37,7 +37,7 @@ testcontainers-mongodb==0.0.1rc1 # MongoDB support for testcontainers
 testcontainers-minio==0.0.1rc1   # MinIO support for testcontainers
 
 # --- Code Quality & Formatting ---
-pylint==2.14.0                # Static code analysis (Linter)
+pylint==4.0.9                # Static code analysis (Linter)
 flake8==4.0.1                 # Style guide enforcement (Linter)
 black==22.3.0                 # Uncompromising code formatter
 
